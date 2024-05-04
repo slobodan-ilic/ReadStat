@@ -46,7 +46,8 @@ static sas7bcat_block_t *sas7bcat_block_for_label_set(readstat_label_set_t *r_la
     memcpy(&block->data[38], &count, sizeof(int32_t));
     memcpy(&block->data[42], &count, sizeof(int32_t));
     if (name_len > 8) {
-        block->data[2] = (char)0x80;
+        int16_t flags = 0x80;
+        memcpy(&block->data[2], &flags, sizeof(int16_t));
         memcpy(&block->data[8], name, 8);
 
         memset(&block->data[106], ' ', 32);
@@ -139,16 +140,15 @@ static readstat_error_t sas7bcat_begin_data(void *writer_ctx) {
 
     // Page 1
     char *xlsr = &page[856];
-    int16_t block_idx, block_off;
-    block_idx = 4;
-    block_off = 16;
+    int32_t block_idx = 4;
+    int16_t block_off = 16;
     for (i=0; i<writer->label_sets_count; i++) {
         if (xlsr + 212 > page + hinfo->page_size)
             break;
 
         memcpy(&xlsr[0], "XLSR", 4);
 
-        memcpy(&xlsr[4], &block_idx, sizeof(int16_t));
+        memcpy(&xlsr[4], &block_idx, sizeof(int32_t));
         memcpy(&xlsr[8], &block_off, sizeof(int16_t));
 
         xlsr[50] = 'O';
