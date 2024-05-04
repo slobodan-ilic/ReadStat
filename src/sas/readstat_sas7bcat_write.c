@@ -63,7 +63,8 @@ static sas7bcat_block_t *sas7bcat_block_for_label_set(readstat_label_set_t *r_la
 
     for (j=0; j<r_label_set->value_labels_count; j++) {
         readstat_value_label_t *value_label = readstat_get_value_label(r_label_set, j);
-        lbp1[2] = 24; // size - 6
+        int16_t value_entry_len = 24; // size - 6
+        memcpy(&lbp1[2], &value_entry_len, sizeof(int16_t));
         int32_t index = j;
         memcpy(&lbp1[10], &index, sizeof(int32_t));
         if (r_label_set->type == READSTAT_TYPE_STRING) {
@@ -86,7 +87,7 @@ static sas7bcat_block_t *sas7bcat_block_for_label_set(readstat_label_set_t *r_la
         memcpy(&lbp2[8], &label_len, sizeof(int16_t));
         memcpy(&lbp2[10], value_label->label, label_len);
 
-        lbp1 += 30;
+        lbp1 += 6 + value_entry_len;
         lbp2 += 8 + 2 + value_label->label_len + 1;
     }
 
