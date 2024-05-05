@@ -8,6 +8,7 @@
 #include <float.h>
 #include <time.h>
 #include <limits.h>
+#include <ctype.h>
 
 #include "../readstat.h"
 #include "../readstat_bits.h"
