@@ -149,6 +149,7 @@ static readstat_error_t sav_parse_long_string_value_labels_record(const void *da
 static readstat_error_t sav_parse_long_string_missing_values_record(const void *data, size_t size, size_t count, sav_ctx_t *ctx);
 static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx_t *ctx);
 
+
 static mr_set_t parse_mr_line(const char *line) {
     const char *equals_pos = strchr(line, '=');
     mr_set_t result;
@@ -178,7 +179,6 @@ static mr_set_t parse_mr_line(const char *line) {
                 next_part++;
             }
             result.counted_value = (int)strtol(digit_start, NULL, 10);
-            printf("\nFinal counted value is: %d\n", result.counted_value);
             if (*next_part != ' ' && *next_part != '\0') {
                 fprintf(stderr, "Expected a space or end of string after the counted value\n");
                 return result;
@@ -207,7 +207,6 @@ static mr_set_t parse_mr_line(const char *line) {
         }
         size_t count = strtoul(digit_start, NULL, 10);
         next_part++; // Move past the space after the digits
-        printf("count: %zu\n", count);
         if (strlen(next_part) < count) {
             fprintf(stderr, "Not enough characters available to read the specified count\n");
             free(result.name);
@@ -230,10 +229,6 @@ static mr_set_t parse_mr_line(const char *line) {
 
         // Move the next_part pointer past the read characters
         next_part += count;
-
-        // Output the actual label for debugging
-        printf("label: %s\n", result.label);
-
         if (*next_part != ' ') {
             fprintf(stderr, "Expected a space after the label\n");
             free(result.label);
@@ -306,7 +301,8 @@ static mr_set_t parse_mr_line(const char *line) {
 static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx_t *ctx) {
     readstat_error_t retval = READSTAT_OK;
 
-    char *mr_string = readstat_malloc(data_len);
+    char *mr_string = readstat_malloc(data_len + 1);
+    mr_string[data_len] = '\0';
     if (mr_string == NULL) return READSTAT_ERROR_MALLOC;
 
     if (ctx->io->read(mr_string, data_len, ctx->io->io_ctx) < data_len) {
@@ -319,7 +315,7 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
     char *token = strtok(mr_string, "$\n");
     int num_lines = 0;
     while (token != NULL) {
-        ctx->mr_sets = realloc(ctx->mr_sets, (num_lines + 1) * sizeof(mr_set_t *));
+        ctx->mr_sets = realloc(ctx->mr_sets, (num_lines + 1) * sizeof(mr_set_t));
         ctx->mr_sets[num_lines] = parse_mr_line(token);
         num_lines++;
         token = strtok(NULL, "$\n");
@@ -1852,6 +1848,35 @@ readstat_error_t readstat_parse_sav(readstat_parser_t *parser, const char *path,
             goto cleanup;
 
         metadata.file_label = ctx->file_label;
+
+        // Replace short MR names with long names
+        ck_hash_table_t *var_dict = ck_hash_table_init(1024, 8);
+        for (size_t i = 0; i < ctx->var_count; i++) {
+            spss_varinfo_t *current_varinfo = ctx->varinfo[i];
+            if (current_varinfo != NULL && current_varinfo->name[0] != '\0') {
+                ck_str_hash_insert(current_varinfo->name, current_varinfo, var_dict);
+            }
+        }
+        for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
+            mr_set_t mr = ctx->mr_sets[i];
+            for (size_t j = 0; j < mr.num_subvars; j++) {
+                char* sv_name_upper = malloc(strlen(mr.subvariables[j]) + 1);
+                for (int c = 0; mr.subvariables[j][c] != '\0'; c++) {
+                    sv_name_upper[c] = toupper((unsigned char) mr.subvariables[j][c]);
+                }
+                spss_varinfo_t *info = (spss_varinfo_t *)ck_str_hash_lookup(sv_name_upper, var_dict);
+                if (info) {
+                    free(mr.subvariables[j]);
+                    mr.subvariables[j] = info->longname;
+                }
+            }
+        }
+        if (var_dict)
+            ck_hash_table_free(var_dict);
+
+        metadata.multiple_response_sets_length = ctx->multiple_response_sets_length;
+        metadata.mr_sets = ctx->mr_sets;
+
         metadata.multiple_response_sets_length = ctx->multiple_response_sets_length;
         metadata.mr_sets = ctx->mr_sets;
 
@@ -1867,36 +1892,6 @@ readstat_error_t readstat_parse_sav(readstat_parser_t *parser, const char *path,
     if ((retval = sav_handle_variables(ctx)) != READSTAT_OK)
         goto cleanup;
 
-    ck_hash_table_t *var_dict = ck_hash_table_init(1024, 8);
-    for (size_t i = 0; i < ctx->varinfo_capacity; i++) {
-        spss_varinfo_t *current_varinfo = ctx->varinfo[i];
-        if (current_varinfo != NULL) {
-            ck_str_hash_insert(current_varinfo->name, current_varinfo, var_dict);
-        }
-    }
-    for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
-        mr_set_t mr = ctx->mr_sets[i];
-        for (size_t j = 0; j < mr.num_subvars; j++) {
-            if (mr.type == 'C') {
-                char* sv_name_upper = malloc(strlen(mr.subvariables[i]) + 1);
-                for (int c = 0; mr.subvariables[j][c] != '\0'; c++) {
-                    sv_name_upper[c] = toupper((unsigned char) mr.subvariables[j][c]);
-                }
-                sv_name_upper[strlen(mr.subvariables[j])] = '\0';
-                spss_varinfo_t *info = (spss_varinfo_t *)ck_str_hash_lookup(sv_name_upper, var_dict);
-                if (info) {
-                    free(mr.subvariables[j]);
-                    mr.subvariables[j] = malloc(strlen(info->longname) + 1);
-                    if (mr.subvariables[j] == NULL) {
-                        continue;
-                    }
-                    strcpy(mr.subvariables[j], info->longname);
-                }
-            }
-        }
-    }
-    if (var_dict)
-        ck_hash_table_free(var_dict);
 
     if ((retval = sav_handle_fweight(ctx)) != READSTAT_OK)
         goto cleanup;
