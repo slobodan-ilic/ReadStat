@@ -244,9 +244,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
         goto cleanup;
     }
 
-    // Allocate memory for label
-    result->label = malloc(count + 1);  // +1 for the null-terminator
-    if (result->label == NULL) {
+    if ((result->label = malloc(count + 1)) == NULL) {
         retval = READSTAT_ERROR_MALLOC;
         goto cleanup;
     }
