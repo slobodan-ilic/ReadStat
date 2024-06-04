@@ -232,9 +232,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
     }
     next_part++;
     const char *digit_start = next_part;
-    while (isdigit(*next_part)) {
-        next_part++;
-    }
+    while (isdigit(*next_part)) next_part++;
     if (*next_part != ' ') {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
