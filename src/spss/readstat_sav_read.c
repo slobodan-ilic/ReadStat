@@ -193,8 +193,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
 
     result->type = equals_pos[1];
     int name_length = equals_pos - line;
-    result->name = malloc(name_length + 1);
-    if (result->name == NULL) {
+    if ((result->name = malloc(name_length + 1)) == NULL) {
         retval = READSTAT_ERROR_MALLOC;
         goto cleanup;
     }
