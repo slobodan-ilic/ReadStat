@@ -319,6 +319,7 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
     ctx->multiple_response_sets_length = num_lines;
 
 cleanup:
+    free(mr_string);
     return retval;
 }
 
