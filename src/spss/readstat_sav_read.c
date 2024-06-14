@@ -177,6 +177,10 @@ static readstat_error_t parse_mr_counted_value(const char **next_part, mr_set_t 
         result->is_dichotomy = 0;
         result->counted_value = -1;
     }
+    else {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
 cleanup:
     return retval;
 }
@@ -204,6 +208,11 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
     }
     strncpy(result->name, line, name_length);
     result->name[name_length] = '\0';
+
+    if (equals_pos[2] == '\0') {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
     const char *next_part = equals_pos + 2;  // Start after the '=' and type character
     if ((retval = parse_mr_counted_value(&next_part, result)) != READSTAT_OK) goto cleanup;
     if (*next_part != ' ') {
@@ -219,7 +228,22 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
     }
-    size_t count = strtoul(digit_start, NULL, 10);
+    if (digit_start == next_part) { // ensure digit start not empty
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
+    char *endptr;
+    size_t count = strtoul(digit_start, &endptr, 10);
+    if (endptr == digit_start || count == 0) {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
+
+    next_part = endptr;
+    if (*next_part != ' ') {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
     next_part++; // Move past the space after the digits
     if (strlen(next_part) < count) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
@@ -260,7 +284,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
             retval = READSTAT_ERROR_MALLOC;
             for (int i = 0; i < subvar_count; i++) {
                 free(subvariables[i]);
-                // subvariables[i] = NULL;
+                subvariables[i] = NULL;
             }
             free(subvariables);
             goto cleanup;
@@ -274,7 +298,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
             free(subvariable);
             for (int i = 0; i < subvar_count; i++) {
                 free(subvariables[i]);
-                // subvariables[i] = NULL;
+                subvariables[i] = NULL;
             }
             free(subvariables);
             goto cleanup;
@@ -310,7 +334,7 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         goto cleanup;
     }
 
-    // fprintf(stderr, "\n\n\nDebug: MR string: '%s'\n", mr_string);
+    fprintf(stderr, "\n\n\nDebug: MR string: '%s'\n", mr_string);
     char *token = strtok(mr_string, "$\n");
     int num_lines = 0;
     while (token != NULL) {

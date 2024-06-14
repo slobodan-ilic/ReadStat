@@ -92,7 +92,6 @@ void sav_ctx_free(sav_ctx_t *ctx) {
         free(ctx->variable_display_values);
     }
     if (ctx->mr_sets) {
-        fflush(stderr);
         for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
             if (ctx->mr_sets[i].name) {
                 free(ctx->mr_sets[i].name);
