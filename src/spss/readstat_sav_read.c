@@ -194,7 +194,11 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
 
     result->type = equals_pos[1];
     int name_length = equals_pos - line;
-    if ((result->name = malloc(name_length + 1)) == NULL) {
+    if (name_length < 1) {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
+    if ((result->name = readstat_malloc(name_length + 1)) == NULL) {
         retval = READSTAT_ERROR_MALLOC;
         goto cleanup;
     }
@@ -222,7 +226,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
         goto cleanup;
     }
 
-    result->label = malloc(count + 1);  // +1 for the null-terminator
+    result->label = readstat_malloc(count + 1);  // +1 for the null-terminator
     if (result->label == NULL) {
         retval = READSTAT_ERROR_MALLOC;
         goto cleanup;
@@ -251,15 +255,14 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
         }
 
         size_t length = next_part - start;
-        char *subvariable = malloc(length + 1);  // Allocate memory for the subvariable
+        char *subvariable = readstat_malloc(length + 1);  // Allocate memory for the subvariable
         if (subvariable == NULL) {
             retval = READSTAT_ERROR_MALLOC;
             for (int i = 0; i < subvar_count; i++) {
                 free(subvariables[i]);
+                // subvariables[i] = NULL;
             }
             free(subvariables);
-            free(result->label);
-            result->label = NULL;
             goto cleanup;
         }
         strncpy(subvariable, start, length);
@@ -271,10 +274,9 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
             free(subvariable);
             for (int i = 0; i < subvar_count; i++) {
                 free(subvariables[i]);
+                // subvariables[i] = NULL;
             }
             free(subvariables);
-            free(result->label);
-            result->label = NULL;
             goto cleanup;
         }
         subvariables = temp;
@@ -299,7 +301,6 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         goto cleanup;
     }
     mr_string[data_len] = '\0';
-
     if (ctx->io->read(mr_string, data_len, ctx->io->io_ctx) < data_len) {
         retval = READSTAT_ERROR_PARSE;
         goto cleanup;
@@ -309,6 +310,7 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         goto cleanup;
     }
 
+    // fprintf(stderr, "\n\n\nDebug: MR string: '%s'\n", mr_string);
     char *token = strtok(mr_string, "$\n");
     int num_lines = 0;
     while (token != NULL) {
@@ -1518,6 +1520,10 @@ static readstat_error_t sav_parse_records_pass1(sav_ctx_t *ctx) {
                     if (retval != READSTAT_OK)
                         goto cleanup;
                 } else if (subtype == SAV_RECORD_SUBTYPE_MULTIPLE_RESPONSE_SETS) {
+                    if (ctx->mr_sets != NULL) {
+                        retval = READSTAT_ERROR_BAD_MR_STRING;
+                        goto cleanup;
+                    }
                     retval = sav_read_multiple_response_sets(data_len, ctx);
                     if (retval != READSTAT_OK)
                         goto cleanup;
@@ -1871,9 +1877,17 @@ readstat_error_t readstat_parse_sav(readstat_parser_t *parser, const char *path,
                 spss_varinfo_t *info = (spss_varinfo_t *)ck_str_hash_lookup(sv_name_upper, var_dict);
                 if (info) {
                     free(mr.subvariables[j]);
-                    mr.subvariables[j] = info->longname;
+                    // mr.subvariables[j] = NULL;
+                    if ((mr.subvariables[j] = readstat_malloc(strlen(info->longname) + 1)) == NULL) {
+                        retval = READSTAT_ERROR_MALLOC;
+                        goto cleanup;
+                    }
+                    // mr.subvariables[j][strlen(info->longname)] = '\0';
+                    strcpy(mr.subvariables[j], info->longname);
+                    // mr.subvariables[j] = info->longname;
                 }
                 free(sv_name_upper);
+                // sv_name_upper = NULL;
             }
         }
         if (var_dict)
