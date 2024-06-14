@@ -303,6 +303,10 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         retval = READSTAT_ERROR_PARSE;
         goto cleanup;
     }
+    if (mr_string[0] != '$') {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
 
     char *token = strtok(mr_string, "$\n");
     int num_lines = 0;
