@@ -164,7 +164,7 @@ static readstat_error_t parse_mr_counted_value(const char **next_part, mr_set_t 
         }
         (*next_part)++;
         digit_start = (*next_part);
-        for (int i = 0; i < internal_count && isdigit(*(*next_part)); i++) {
+        for (int i = 0; i < internal_count && isdigit((unsigned char)*(*next_part)); i++) {
             (*next_part)++;
         }
         result->counted_value = (int)strtol(digit_start, NULL, 10);
@@ -180,6 +180,7 @@ static readstat_error_t parse_mr_counted_value(const char **next_part, mr_set_t 
 cleanup:
     return retval;
 }
+
 
 static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
     readstat_error_t retval = READSTAT_OK;
@@ -207,7 +208,7 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
     }
     next_part++;
     const char *digit_start = next_part;
-    while (isdigit(*next_part)) {
+    while (isdigit((unsigned char)*next_part)) {
         next_part++;
     }
     if (*next_part != ' ') {
