@@ -89,6 +89,24 @@ void sav_ctx_free(sav_ctx_t *ctx) {
     if (ctx->variable_display_values) {
         free(ctx->variable_display_values);
     }
+    if (ctx->mr_sets) {
+        for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
+            if (ctx->mr_sets[i].name) {
+                free(ctx->mr_sets[i].name);
+            }
+            if (ctx->mr_sets[i].label) {
+                free(ctx->mr_sets[i].label);
+            }
+            if (ctx->mr_sets[i].subvariables) {
+                // No need to free each subvariable, as they've been updated in the
+                // postprocesing, just before dealin with metadata. Each subvariable was
+                // pointing to the version in long names from var_info. The var_info is
+                // freed above, so each particular subvariable pointer is freed as well.
+                free(ctx->mr_sets[i].subvariables);
+            }
+        }
+        free(ctx->mr_sets);
+    }
     free(ctx);
 }
 

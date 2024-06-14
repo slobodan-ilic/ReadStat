@@ -1868,6 +1868,7 @@ readstat_error_t readstat_parse_sav(readstat_parser_t *parser, const char *path,
                     free(mr.subvariables[j]);
                     mr.subvariables[j] = info->longname;
                 }
+                free(sv_name_upper);
             }
         }
         if (var_dict)
