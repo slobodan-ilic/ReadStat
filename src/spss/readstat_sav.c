@@ -91,25 +91,26 @@ void sav_ctx_free(sav_ctx_t *ctx) {
     if (ctx->variable_display_values) {
         free(ctx->variable_display_values);
     }
-    if (ctx->mr_sets) {
-        for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
-            if (ctx->mr_sets[i].name) {
-                free(ctx->mr_sets[i].name);
-            }
-            if (ctx->mr_sets[i].label) {
-                free(ctx->mr_sets[i].label);
-            }
-            if (ctx->mr_sets[i].subvariables) {
-                for (size_t j = 0; j < ctx->mr_sets[i].num_subvars; j++) {
-                    if (ctx->mr_sets[i].subvariables[j]) {
-                        free(ctx->mr_sets[i].subvariables[j]);
-                    }
-                }
-                free(ctx->mr_sets[i].subvariables);
-            }
-        }
-        free(ctx->mr_sets);
-    }
+    // Hatchet!!
+    // if (ctx->mr_sets) {
+    //     for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
+    //         if (ctx->mr_sets[i].name) {
+    //             free(ctx->mr_sets[i].name);
+    //         }
+    //         if (ctx->mr_sets[i].label) {
+    //             free(ctx->mr_sets[i].label);
+    //         }
+    //         if (ctx->mr_sets[i].subvariables) {
+    //             for (size_t j = 0; j < ctx->mr_sets[i].num_subvars; j++) {
+    //                 if (ctx->mr_sets[i].subvariables[j]) {
+    //                     free(ctx->mr_sets[i].subvariables[j]);
+    //                 }
+    //             }
+    //             free(ctx->mr_sets[i].subvariables);
+    //         }
+    //     }
+    //     free(ctx->mr_sets);
+    // }
     free(ctx);
 }
 

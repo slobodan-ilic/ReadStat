@@ -317,6 +317,7 @@ cleanup:
 }
 
 static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx_t *ctx) {
+    return READSTAT_OK; // hatchet
     readstat_error_t retval = READSTAT_OK;
 
     char *mr_string = readstat_malloc(data_len + 1);
@@ -1879,46 +1880,47 @@ readstat_error_t readstat_parse_sav(readstat_parser_t *parser, const char *path,
         metadata.file_label = ctx->file_label;
 
         // Replace short MR names with long names
-        ck_hash_table_t *var_dict = ck_hash_table_init(1024, 8);
-        for (size_t i = 0; i < ctx->var_count; i++) {
-            spss_varinfo_t *current_varinfo = ctx->varinfo[i];
-            if (current_varinfo != NULL && current_varinfo->name[0] != '\0') {
-                ck_str_hash_insert(current_varinfo->name, current_varinfo, var_dict);
-            }
-        }
-        for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
-            mr_set_t mr = ctx->mr_sets[i];
-            for (size_t j = 0; j < mr.num_subvars; j++) {
-                char* sv_name_upper = malloc(strlen(mr.subvariables[j]) + 1);
-                if (sv_name_upper == NULL) {
-                    retval = READSTAT_ERROR_MALLOC;
-                    goto cleanup;
-                }
-                sv_name_upper[strlen(mr.subvariables[j])] = '\0';
-                for (int c = 0; mr.subvariables[j][c] != '\0'; c++) {
-                    sv_name_upper[c] = toupper((unsigned char) mr.subvariables[j][c]);
-                }
-                spss_varinfo_t *info = (spss_varinfo_t *)ck_str_hash_lookup(sv_name_upper, var_dict);
-                if (info) {
-                    free(mr.subvariables[j]);
-                    // mr.subvariables[j] = NULL;
-                    if ((mr.subvariables[j] = readstat_malloc(strlen(info->longname) + 1)) == NULL) {
-                        retval = READSTAT_ERROR_MALLOC;
-                        goto cleanup;
-                    }
-                    // mr.subvariables[j][strlen(info->longname)] = '\0';
-                    strcpy(mr.subvariables[j], info->longname);
-                    // mr.subvariables[j] = info->longname;
-                }
-                free(sv_name_upper);
-                // sv_name_upper = NULL;
-            }
-        }
-        if (var_dict)
-            ck_hash_table_free(var_dict);
+        // Hatchet !!!
+        // ck_hash_table_t *var_dict = ck_hash_table_init(1024, 8);
+        // for (size_t i = 0; i < ctx->var_count; i++) {
+        //     spss_varinfo_t *current_varinfo = ctx->varinfo[i];
+        //     if (current_varinfo != NULL && current_varinfo->name[0] != '\0') {
+        //         ck_str_hash_insert(current_varinfo->name, current_varinfo, var_dict);
+        //     }
+        // }
+        // for (size_t i = 0; i < ctx->multiple_response_sets_length; i++) {
+        //     mr_set_t mr = ctx->mr_sets[i];
+        //     for (size_t j = 0; j < mr.num_subvars; j++) {
+        //         char* sv_name_upper = malloc(strlen(mr.subvariables[j]) + 1);
+        //         if (sv_name_upper == NULL) {
+        //             retval = READSTAT_ERROR_MALLOC;
+        //             goto cleanup;
+        //         }
+        //         sv_name_upper[strlen(mr.subvariables[j])] = '\0';
+        //         for (int c = 0; mr.subvariables[j][c] != '\0'; c++) {
+        //             sv_name_upper[c] = toupper((unsigned char) mr.subvariables[j][c]);
+        //         }
+        //         spss_varinfo_t *info = (spss_varinfo_t *)ck_str_hash_lookup(sv_name_upper, var_dict);
+        //         if (info) {
+        //             free(mr.subvariables[j]);
+        //             // mr.subvariables[j] = NULL;
+        //             if ((mr.subvariables[j] = readstat_malloc(strlen(info->longname) + 1)) == NULL) {
+        //                 retval = READSTAT_ERROR_MALLOC;
+        //                 goto cleanup;
+        //             }
+        //             // mr.subvariables[j][strlen(info->longname)] = '\0';
+        //             strcpy(mr.subvariables[j], info->longname);
+        //             // mr.subvariables[j] = info->longname;
+        //         }
+        //         free(sv_name_upper);
+        //         // sv_name_upper = NULL;
+        //     }
+        // }
+        // if (var_dict)
+        //     ck_hash_table_free(var_dict);
 
-        metadata.multiple_response_sets_length = ctx->multiple_response_sets_length;
-        metadata.mr_sets = ctx->mr_sets;
+        // metadata.multiple_response_sets_length = ctx->multiple_response_sets_length;
+        // metadata.mr_sets = ctx->mr_sets;
 
         if (ctx->handle.metadata(&metadata, ctx->user_ctx) != READSTAT_HANDLER_OK) {
             retval = READSTAT_ERROR_USER_ABORT;
