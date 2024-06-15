@@ -317,7 +317,6 @@ cleanup:
 }
 
 static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx_t *ctx) {
-    return READSTAT_OK; // hatchet
     readstat_error_t retval = READSTAT_OK;
 
     char *mr_string = readstat_malloc(data_len + 1);
