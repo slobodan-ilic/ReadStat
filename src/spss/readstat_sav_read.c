@@ -232,9 +232,9 @@ static readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
     }
-    char *endptr;
+    char *endptr = NULL;
     size_t count = strtoul(digit_start, &endptr, 10);
-    if (endptr == digit_start || count == 0) {
+    if (endptr == digit_start) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
     }
