@@ -3,14 +3,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "readstat.h"
+#include "../readstat.h"
+#include "readstat_sav_parse_mr_name.h"
 
 
-#line 72 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 73 "./src/spss/readstat_sav_parse_mr_name.rl"
 
 
 
-#line 14 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 15 "./src/spss/readstat_sav_parse_mr_name.c"
 static const char _mr_name_and_label_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	3, 1, 4
@@ -72,7 +73,7 @@ static const int mr_name_and_label_error = 0;
 static const int mr_name_and_label_en_name_extractor = 1;
 
 
-#line 75 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 76 "./src/spss/readstat_sav_parse_mr_name.rl"
 
 readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     readstat_error_t retval = READSTAT_OK;
@@ -85,22 +86,22 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
 
     // Variables needed for passing Ragel intermediate results
     char mr_type;
-    int mr_counted_value;
-    int mr_subvar_count;
+    int mr_counted_value = -1;
+    int mr_subvar_count = -1;
     char **mr_subvariables = NULL;
     char *mr_name = NULL;
     char *mr_label = NULL;
 
     // Execute Ragel finite state machine (FSM)
     
-#line 97 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 98 "./src/spss/readstat_sav_parse_mr_name.c"
 	{
 	cs = mr_name_and_label_start;
 	}
 
-#line 95 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 96 "./src/spss/readstat_sav_parse_mr_name.rl"
     
-#line 104 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 105 "./src/spss/readstat_sav_parse_mr_name.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -175,30 +176,30 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 9 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 10 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        mr_name = (char *)malloc(p - start + 1);
+        mr_name = (char *)readstat_malloc(p - start + 1);
         memcpy(mr_name, start, p - start);
         mr_name[p - start] = '\0';
     }
 	break;
 	case 1:
-#line 15 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 16 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
         mr_type = *p;
         start = p + 1;
     }
 	break;
 	case 2:
-#line 20 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 21 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
         int n_cv_digs = p - start;
-        char *n_dig_str = (char *)malloc(n_cv_digs + 1);
+        char *n_dig_str = (char *)readstat_malloc(n_cv_digs + 1);
         memcpy(n_dig_str, start, n_cv_digs);
         n_dig_str[n_cv_digs] = '\0';
         int n_digs = strtol(n_dig_str, NULL, 10);
         if (n_digs != 0) {
-            char *cv = (char *)malloc(n_digs + 1);
+            char *cv = (char *)readstat_malloc(n_digs + 1);
             memcpy(cv, p + 1, n_digs);
             cv[n_digs] = '\0';
             mr_counted_value = strtol(cv, NULL, 10);
@@ -211,13 +212,13 @@ _match:
     }
 	break;
 	case 3:
-#line 39 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 40 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        char *lbl_len_str = (char *)malloc(p - start + 1);
+        char *lbl_len_str = (char *)readstat_malloc(p - start + 1);
         memcpy(lbl_len_str, start, p - start);
         lbl_len_str[p - start] = '\0';
         int len = strtol(lbl_len_str, NULL, 10);
-        mr_label = (char *)malloc(len + 1);
+        mr_label = (char *)readstat_malloc(len + 1);
         memcpy(mr_label, p + 1, len);
         mr_label[len] = '\0';
         p = p + 1 + len;
@@ -225,19 +226,19 @@ _match:
     }
 	break;
 	case 4:
-#line 51 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 52 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
         int len = p - start;
-        char *subvar = (char *)malloc(len + 1);
+        char *subvar = (char *)readstat_malloc(len + 1);
         memcpy(subvar, start, len);
         subvar[len] = '\0';
         start = p + 1;
 
-        mr_subvariables = realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
+        mr_subvariables = readstat_realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
         mr_subvariables[mr_subvar_count++] = subvar;
     }
 	break;
-#line 241 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 242 "./src/spss/readstat_sav_parse_mr_name.c"
 		}
 	}
 
@@ -250,7 +251,7 @@ _again:
 	_out: {}
 	}
 
-#line 96 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 97 "./src/spss/readstat_sav_parse_mr_name.rl"
 
     // Check if FSM finished successfully
     if (cs < 9 || p != pe) {
@@ -259,8 +260,8 @@ _again:
     }
 
     // Assign parsed values to output parameter
-    result->name = strdup(mr_name);
-    result->label = strdup(mr_label);
+    result->name = mr_name;
+    result->label = mr_label;
     result->type = mr_type;
     result->counted_value = mr_counted_value;
     result->subvariables = mr_subvariables;
