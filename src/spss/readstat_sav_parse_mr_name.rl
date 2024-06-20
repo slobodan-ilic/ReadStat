@@ -21,7 +21,7 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     char *pe = p + strlen(p) + 1;
 
     // Variables needed for passing Ragel intermediate results
-    char mr_type;
+    char mr_type = '\0';
     int mr_counted_value = -1;
     int mr_subvar_count = -1;
     char** mr_subvariables = NULL;
