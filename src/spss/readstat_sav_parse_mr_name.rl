@@ -6,74 +6,10 @@
 #include "readstat_sav_parse_mr_name.h"
 
 %%{
-    machine mr_name_and_label;
-
-    action extract_mr_name {
-        mr_name = readstat_malloc(p - start + 1);
-        memcpy(mr_name, start, p - start);
-        mr_name[p - start] = '\0';
-    }
-
-    action extract_mr_type {
-        mr_type = *p;
-        start = p + 1;
-    }
-
-    action extract_counted_value {
-        int n_cv_digs = p - start;
-        char *n_dig_str = readstat_malloc(n_cv_digs + 1);
-        memcpy(n_dig_str, start, n_cv_digs);
-        n_dig_str[n_cv_digs] = '\0';
-        int n_digs = strtol(n_dig_str, NULL, 10);
-        if (n_digs != 0) {
-            char *cv = readstat_malloc(n_digs + 1);
-            memcpy(cv, p + 1, n_digs);
-            cv[n_digs] = '\0';
-            mr_counted_value = strtol(cv, NULL, 10);
-            p = p + 1 + n_digs;
-            start = p + 1;
-        }
-        else {
-            mr_counted_value = -1;
-        }
-    }
-
-    action extract_label {
-        char *lbl_len_str = readstat_malloc(p - start + 1);
-        memcpy(lbl_len_str, start, p - start);
-        lbl_len_str[p - start] = '\0';
-        int len = strtol(lbl_len_str, NULL, 10);
-        mr_label = readstat_malloc(len + 1);
-        memcpy(mr_label, p + 1, len);
-        mr_label[len] = '\0';
-        p = p + 1 + len;
-        start = p + 1;
-    }
-
-    action extract_subvar {
-        int len = p - start;
-        char *subvar = readstat_malloc(len + 1);
-        memcpy(subvar, start, len);
-        subvar[len] = '\0';
-        start = p + 1;
-
-        mr_subvariables = readstat_realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
-        mr_subvariables[mr_subvar_count++] = subvar;
-    }
-
-    name = (alnum | '_')+ '=' > extract_mr_name;
-    type = ('C' | 'D'){1} > extract_mr_type;
-    counted_value = digit* ' ' > extract_counted_value;
-    label = digit+ ' '+ > extract_label;
-
-    nc = (alnum | '_'); # name character
-    end = (space | '\0'); # token terminator
-    subvariable = (nc+ end >extract_subvar);
-
-    name_extractor := name type counted_value label subvariable+;
+    machine parse_multiple_response;
+    write data nofinal noerror;
 }%%
 
-%% write data;
 
 readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     readstat_error_t retval = READSTAT_OK;
@@ -93,10 +29,75 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     char* mr_label = NULL;
 
     // Execute Ragel finite state machine (FSM)
-    %% write init;
-    %% write exec;
+    %%{
+        action extract_mr_name {
+            mr_name = readstat_malloc(p - start + 1);
+            memcpy(mr_name, start, p - start);
+            mr_name[p - start] = '\0';
+        }
 
-    // Check if FSM finished successfully
+        action extract_mr_type {
+            mr_type = *p;
+            start = p + 1;
+        }
+
+        action extract_counted_value {
+            int n_cv_digs = p - start;
+            char *n_dig_str = readstat_malloc(n_cv_digs + 1);
+            memcpy(n_dig_str, start, n_cv_digs);
+            n_dig_str[n_cv_digs] = '\0';
+            int n_digs = strtol(n_dig_str, NULL, 10);
+            if (n_digs != 0) {
+                char *cv = readstat_malloc(n_digs + 1);
+                memcpy(cv, p + 1, n_digs);
+                cv[n_digs] = '\0';
+                mr_counted_value = strtol(cv, NULL, 10);
+                p = p + 1 + n_digs;
+                start = p + 1;
+            }
+            else {
+                mr_counted_value = -1;
+            }
+        }
+
+        action extract_label {
+            char *lbl_len_str = readstat_malloc(p - start + 1);
+            memcpy(lbl_len_str, start, p - start);
+            lbl_len_str[p - start] = '\0';
+            int len = strtol(lbl_len_str, NULL, 10);
+            mr_label = readstat_malloc(len + 1);
+            memcpy(mr_label, p + 1, len);
+            mr_label[len] = '\0';
+            p = p + 1 + len;
+            start = p + 1;
+        }
+
+        action extract_subvar {
+            int len = p - start;
+            char *subvar = readstat_malloc(len + 1);
+            memcpy(subvar, start, len);
+            subvar[len] = '\0';
+            start = p + 1;
+
+            mr_subvariables = readstat_realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
+            mr_subvariables[mr_subvar_count++] = subvar;
+        }
+
+        name = (alnum | '_')+ '=' > extract_mr_name;
+        type = ('C' | 'D'){1} > extract_mr_type;
+        counted_value = digit* ' ' > extract_counted_value;
+        label = digit+ ' '+ > extract_label;
+
+        nc = (alnum | '_'); # name character
+        end = (space | '\0'); # token terminator
+        subvariable = (nc+ end >extract_subvar);
+
+        main := name type counted_value label subvariable+;
+
+        write init;
+        write exec;
+    }%%
+
     if (cs < %%{ write first_final; }%% || p != pe) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
@@ -124,11 +125,17 @@ cleanup:
         if (mr_name != NULL) free(mr_name);
         if (mr_label != NULL) free(mr_label);
     }
+
+    (void)parse_multiple_response_en_main;
+
     return retval;
 }
 
 
 readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
+    readstat_error_t retval = READSTAT_OK;
     *result = (mr_set_t){0};
-    return extract_mr_data(line, result);
+
+    retval = extract_mr_data(line, result);
+    return retval;
 }

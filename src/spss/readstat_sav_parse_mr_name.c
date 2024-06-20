@@ -8,22 +8,18 @@
 #include "readstat_sav_parse_mr_name.h"
 
 
-#line 74 "./src/spss/readstat_sav_parse_mr_name.rl"
-
-
-
-#line 16 "./src/spss/readstat_sav_parse_mr_name.c"
-static const char _mr_name_and_label_actions[] = {
+#line 12 "./src/spss/readstat_sav_parse_mr_name.c"
+static const char _parse_multiple_response_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	3, 1, 4
 };
 
-static const char _mr_name_and_label_key_offsets[] = {
+static const char _parse_multiple_response_key_offsets[] = {
 	0, 0, 7, 15, 17, 20, 22, 25, 
 	33, 44
 };
 
-static const char _mr_name_and_label_trans_keys[] = {
+static const char _parse_multiple_response_trans_keys[] = {
 	95, 48, 57, 65, 90, 97, 122, 61, 
 	95, 48, 57, 65, 90, 97, 122, 67, 
 	68, 32, 48, 57, 48, 57, 32, 48, 
@@ -33,22 +29,22 @@ static const char _mr_name_and_label_trans_keys[] = {
 	90, 97, 122, 0
 };
 
-static const char _mr_name_and_label_single_lengths[] = {
+static const char _parse_multiple_response_single_lengths[] = {
 	0, 1, 2, 0, 1, 0, 1, 2, 
 	3, 1
 };
 
-static const char _mr_name_and_label_range_lengths[] = {
+static const char _parse_multiple_response_range_lengths[] = {
 	0, 3, 3, 1, 1, 1, 1, 3, 
 	4, 3
 };
 
-static const char _mr_name_and_label_index_offsets[] = {
+static const char _parse_multiple_response_index_offsets[] = {
 	0, 0, 5, 11, 13, 16, 18, 21, 
 	27, 35
 };
 
-static const char _mr_name_and_label_indicies[] = {
+static const char _parse_multiple_response_indicies[] = {
 	0, 0, 0, 0, 1, 2, 0, 0, 
 	0, 0, 1, 3, 1, 4, 5, 1, 
 	6, 1, 7, 6, 1, 8, 9, 9, 
@@ -57,24 +53,24 @@ static const char _mr_name_and_label_indicies[] = {
 	0
 };
 
-static const char _mr_name_and_label_trans_targs[] = {
+static const char _parse_multiple_response_trans_targs[] = {
 	2, 0, 3, 4, 5, 4, 6, 7, 
 	7, 8, 9
 };
 
-static const char _mr_name_and_label_trans_actions[] = {
+static const char _parse_multiple_response_trans_actions[] = {
 	0, 0, 1, 3, 5, 0, 0, 7, 
 	0, 0, 9
 };
 
-static const int mr_name_and_label_start = 1;
-static const int mr_name_and_label_first_final = 9;
-static const int mr_name_and_label_error = 0;
+static const int parse_multiple_response_start = 1;
 
-static const int mr_name_and_label_en_name_extractor = 1;
+static const int parse_multiple_response_en_main = 1;
 
 
-#line 77 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 11 "./src/spss/readstat_sav_parse_mr_name.rl"
+
+
 
 readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     readstat_error_t retval = READSTAT_OK;
@@ -95,14 +91,12 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
 
     // Execute Ragel finite state machine (FSM)
     
-#line 99 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 95 "./src/spss/readstat_sav_parse_mr_name.c"
 	{
-	cs = mr_name_and_label_start;
+	cs = parse_multiple_response_start;
 	}
 
-#line 97 "./src/spss/readstat_sav_parse_mr_name.rl"
-    
-#line 106 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 100 "./src/spss/readstat_sav_parse_mr_name.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -115,10 +109,10 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
 	if ( cs == 0 )
 		goto _out;
 _resume:
-	_keys = _mr_name_and_label_trans_keys + _mr_name_and_label_key_offsets[cs];
-	_trans = _mr_name_and_label_index_offsets[cs];
+	_keys = _parse_multiple_response_trans_keys + _parse_multiple_response_key_offsets[cs];
+	_trans = _parse_multiple_response_index_offsets[cs];
 
-	_klen = _mr_name_and_label_single_lengths[cs];
+	_klen = _parse_multiple_response_single_lengths[cs];
 	if ( _klen > 0 ) {
 		const char *_lower = _keys;
 		const char *_mid;
@@ -141,7 +135,7 @@ _resume:
 		_trans += _klen;
 	}
 
-	_klen = _mr_name_and_label_range_lengths[cs];
+	_klen = _parse_multiple_response_range_lengths[cs];
 	if ( _klen > 0 ) {
 		const char *_lower = _keys;
 		const char *_mid;
@@ -164,82 +158,82 @@ _resume:
 	}
 
 _match:
-	_trans = _mr_name_and_label_indicies[_trans];
-	cs = _mr_name_and_label_trans_targs[_trans];
+	_trans = _parse_multiple_response_indicies[_trans];
+	cs = _parse_multiple_response_trans_targs[_trans];
 
-	if ( _mr_name_and_label_trans_actions[_trans] == 0 )
+	if ( _parse_multiple_response_trans_actions[_trans] == 0 )
 		goto _again;
 
-	_acts = _mr_name_and_label_actions + _mr_name_and_label_trans_actions[_trans];
+	_acts = _parse_multiple_response_actions + _parse_multiple_response_trans_actions[_trans];
 	_nacts = (unsigned int) *_acts++;
 	while ( _nacts-- > 0 )
 	{
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 11 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 33 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        mr_name = readstat_malloc(p - start + 1);
-        memcpy(mr_name, start, p - start);
-        mr_name[p - start] = '\0';
-    }
+            mr_name = readstat_malloc(p - start + 1);
+            memcpy(mr_name, start, p - start);
+            mr_name[p - start] = '\0';
+        }
 	break;
 	case 1:
-#line 17 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 39 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        mr_type = *p;
-        start = p + 1;
-    }
-	break;
-	case 2:
-#line 22 "./src/spss/readstat_sav_parse_mr_name.rl"
-	{
-        int n_cv_digs = p - start;
-        char *n_dig_str = readstat_malloc(n_cv_digs + 1);
-        memcpy(n_dig_str, start, n_cv_digs);
-        n_dig_str[n_cv_digs] = '\0';
-        int n_digs = strtol(n_dig_str, NULL, 10);
-        if (n_digs != 0) {
-            char *cv = readstat_malloc(n_digs + 1);
-            memcpy(cv, p + 1, n_digs);
-            cv[n_digs] = '\0';
-            mr_counted_value = strtol(cv, NULL, 10);
-            p = p + 1 + n_digs;
+            mr_type = *p;
             start = p + 1;
         }
-        else {
-            mr_counted_value = -1;
+	break;
+	case 2:
+#line 44 "./src/spss/readstat_sav_parse_mr_name.rl"
+	{
+            int n_cv_digs = p - start;
+            char *n_dig_str = readstat_malloc(n_cv_digs + 1);
+            memcpy(n_dig_str, start, n_cv_digs);
+            n_dig_str[n_cv_digs] = '\0';
+            int n_digs = strtol(n_dig_str, NULL, 10);
+            if (n_digs != 0) {
+                char *cv = readstat_malloc(n_digs + 1);
+                memcpy(cv, p + 1, n_digs);
+                cv[n_digs] = '\0';
+                mr_counted_value = strtol(cv, NULL, 10);
+                p = p + 1 + n_digs;
+                start = p + 1;
+            }
+            else {
+                mr_counted_value = -1;
+            }
         }
-    }
 	break;
 	case 3:
-#line 41 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 63 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        char *lbl_len_str = readstat_malloc(p - start + 1);
-        memcpy(lbl_len_str, start, p - start);
-        lbl_len_str[p - start] = '\0';
-        int len = strtol(lbl_len_str, NULL, 10);
-        mr_label = readstat_malloc(len + 1);
-        memcpy(mr_label, p + 1, len);
-        mr_label[len] = '\0';
-        p = p + 1 + len;
-        start = p + 1;
-    }
+            char *lbl_len_str = readstat_malloc(p - start + 1);
+            memcpy(lbl_len_str, start, p - start);
+            lbl_len_str[p - start] = '\0';
+            int len = strtol(lbl_len_str, NULL, 10);
+            mr_label = readstat_malloc(len + 1);
+            memcpy(mr_label, p + 1, len);
+            mr_label[len] = '\0';
+            p = p + 1 + len;
+            start = p + 1;
+        }
 	break;
 	case 4:
-#line 53 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 75 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        int len = p - start;
-        char *subvar = readstat_malloc(len + 1);
-        memcpy(subvar, start, len);
-        subvar[len] = '\0';
-        start = p + 1;
+            int len = p - start;
+            char *subvar = readstat_malloc(len + 1);
+            memcpy(subvar, start, len);
+            subvar[len] = '\0';
+            start = p + 1;
 
-        mr_subvariables = readstat_realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
-        mr_subvariables[mr_subvar_count++] = subvar;
-    }
+            mr_subvariables = readstat_realloc(mr_subvariables, sizeof(char *) * (mr_subvar_count + 1));
+            mr_subvariables[mr_subvar_count++] = subvar;
+        }
 	break;
-#line 243 "./src/spss/readstat_sav_parse_mr_name.c"
+#line 237 "./src/spss/readstat_sav_parse_mr_name.c"
 		}
 	}
 
@@ -252,9 +246,9 @@ _again:
 	_out: {}
 	}
 
-#line 98 "./src/spss/readstat_sav_parse_mr_name.rl"
+#line 99 "./src/spss/readstat_sav_parse_mr_name.rl"
 
-    // Check if FSM finished successfully
+
     if (cs < 9 || p != pe) {
         retval = READSTAT_ERROR_BAD_MR_STRING;
         goto cleanup;
@@ -282,11 +276,17 @@ cleanup:
         if (mr_name != NULL) free(mr_name);
         if (mr_label != NULL) free(mr_label);
     }
+
+    (void)parse_multiple_response_en_main;
+
     return retval;
 }
 
 
 readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
+    readstat_error_t retval = READSTAT_OK;
     *result = (mr_set_t){0};
-    return extract_mr_data(line, result);
+
+    retval = extract_mr_data(line, result);
+    return retval;
 }
