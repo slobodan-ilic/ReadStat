@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../readstat.h"
+#include "../readstat_malloc.h"
 #include "readstat_sav_parse_mr_name.h"
 
 %%{
@@ -87,9 +88,9 @@ readstat_error_t extract_mr_data(const char *line, mr_set_t *result) {
     char mr_type;
     int mr_counted_value = -1;
     int mr_subvar_count = -1;
-    char **mr_subvariables = NULL;
-    char *mr_name = NULL;
-    char *mr_label = NULL;
+    char** mr_subvariables = NULL;
+    char* mr_name = NULL;
+    char* mr_label = NULL;
 
     // Execute Ragel finite state machine (FSM)
     %% write init;
@@ -128,8 +129,6 @@ cleanup:
 
 
 readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
-    readstat_error_t retval = READSTAT_OK;
     *result = (mr_set_t){0};
-
     return extract_mr_data(line, result);
 }
