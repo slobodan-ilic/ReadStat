@@ -178,7 +178,7 @@ _match:
 	case 0:
 #line 10 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        mr_name = (char *)readstat_malloc(p - start + 1);
+        mr_name = readstat_malloc(p - start + 1);
         memcpy(mr_name, start, p - start);
         mr_name[p - start] = '\0';
     }
@@ -194,12 +194,12 @@ _match:
 #line 21 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
         int n_cv_digs = p - start;
-        char *n_dig_str = (char *)readstat_malloc(n_cv_digs + 1);
+        char *n_dig_str = readstat_malloc(n_cv_digs + 1);
         memcpy(n_dig_str, start, n_cv_digs);
         n_dig_str[n_cv_digs] = '\0';
         int n_digs = strtol(n_dig_str, NULL, 10);
         if (n_digs != 0) {
-            char *cv = (char *)readstat_malloc(n_digs + 1);
+            char *cv = readstat_malloc(n_digs + 1);
             memcpy(cv, p + 1, n_digs);
             cv[n_digs] = '\0';
             mr_counted_value = strtol(cv, NULL, 10);
@@ -214,11 +214,11 @@ _match:
 	case 3:
 #line 40 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
-        char *lbl_len_str = (char *)readstat_malloc(p - start + 1);
+        char *lbl_len_str = readstat_malloc(p - start + 1);
         memcpy(lbl_len_str, start, p - start);
         lbl_len_str[p - start] = '\0';
         int len = strtol(lbl_len_str, NULL, 10);
-        mr_label = (char *)readstat_malloc(len + 1);
+        mr_label = readstat_malloc(len + 1);
         memcpy(mr_label, p + 1, len);
         mr_label[len] = '\0';
         p = p + 1 + len;
@@ -229,7 +229,7 @@ _match:
 #line 52 "./src/spss/readstat_sav_parse_mr_name.rl"
 	{
         int len = p - start;
-        char *subvar = (char *)readstat_malloc(len + 1);
+        char *subvar = readstat_malloc(len + 1);
         memcpy(subvar, start, len);
         subvar[len] = '\0';
         start = p + 1;
