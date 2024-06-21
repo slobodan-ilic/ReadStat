@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <math.h>
@@ -31,8 +30,9 @@
 #define VERY_LONG_STRING_MAX_LENGTH INT_MAX
 
 #ifdef _WIN32
-#define strtok_r(s,d,p) strtok_s(s,d,p)
+#define strtok_r strtok_s
 #endif
+#include <string.h>
 
 /* Others defined in table below */
 
