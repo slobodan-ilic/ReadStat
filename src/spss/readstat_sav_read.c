@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <math.h>
@@ -29,10 +30,9 @@
 #define DATA_BUFFER_SIZE    65536
 #define VERY_LONG_STRING_MAX_LENGTH INT_MAX
 
-#ifdef _WIN32
-#define strtok_r strtok_s
-#endif
-#include <string.h>
+// #ifdef _WIN32
+// #define strtok_r(s,d,p) strtok_s(s,d,p)
+// #endif
 
 /* Others defined in table below */
 
@@ -172,11 +172,9 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         goto cleanup;
     }
 
-    char *saveptr;
-    // fprintf(stderr, "Debug: mr string: '%s'\n", mr_string);
-    char *token = strtok_r(mr_string, "$\n", &saveptr);
-    // fprintf(stderr, "Debug: fst token: '%s'\n", token);
-    // char *token = strtok(mr_string, "$\n");
+    // char *saveptr;
+    // char *token = strtok_r(mr_string, "$\n", &saveptr);
+    char *token = strtok(mr_string, "$\n");
 
     int num_lines = 0;
     while (token != NULL) {
@@ -184,15 +182,11 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
             retval = READSTAT_ERROR_MALLOC;
             goto cleanup;
         }
-        fprintf(stderr, "before parsing line\n");
-        fprintf(stderr, "token: '%s'\n", token);
         retval = parse_mr_line(token, &ctx->mr_sets[num_lines]);
         if (retval != READSTAT_OK) goto cleanup;
         num_lines++;
-        fprintf(stderr, "making next token\n");
-        token = strtok_r(NULL, "$\n", &saveptr);
-        // token = strtok(NULL, "$\n");
-        fprintf(stderr, "Debug: nxt token: '%s'\n", token);
+        // token = strtok_r(NULL, "$\n", &saveptr);
+        token = strtok(NULL, "$\n");
     }
     ctx->multiple_response_sets_length = num_lines;
 
