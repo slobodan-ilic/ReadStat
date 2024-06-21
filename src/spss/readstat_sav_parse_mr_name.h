@@ -2,6 +2,7 @@
 #define READSTAT_PARSE_MR_NAME_H
 
 #include "../readstat.h"
+#include "../readstat_malloc.h"
 
 readstat_error_t parse_mr_line(const char *line, mr_set_t *result);
 
