@@ -60,13 +60,13 @@
         mr_subvariables[mr_subvar_count++] = subvar;
     }
 
-    name = (alnum | '_')+ '=' > extract_mr_name;
+    nc = (alnum | '_'); # name character
+    name = nc+ '=' > extract_mr_name;
     type = ('C' | 'D'){1} > extract_mr_type;
     counted_value = digit* ' ' > extract_counted_value;
     label = digit+ ' '+ > extract_label;
 
-    nc = (alnum | '_'); # name character
-    end = (space | '\0'); # token terminator
+    end = (space | '\0'); # subvar token terminator
     subvariable = (nc+ end >extract_subvar);
 
     main := name type counted_value label subvariable+;
@@ -130,9 +130,51 @@ cleanup:
 
 
 readstat_error_t parse_mr_line(const char *line, mr_set_t *result) {
-    readstat_error_t retval = READSTAT_OK;
     *result = (mr_set_t){0};
+    return extract_mr_data(line, result);
+}
 
-    retval = extract_mr_data(line, result);
+%%{
+    machine mr_parser;
+
+    action mr_line {
+        char *mln = (char *)malloc(p - start);
+        memcpy(mln, start + 1, p - start);
+        mln[p - start - 1] = '\0';
+        *mr_sets = realloc(*mr_sets, ((*n_mr_lines) + 1) * sizeof(mr_set_t));
+        retval = parse_mr_line(mln, &(*mr_sets)[*n_mr_lines]);
+        if (retval != READSTAT_OK) goto cleanup;
+        (*n_mr_lines)++;
+        start = p + 1;
+    }
+    line_start = '$';
+    line_end = '\n';
+    line_char = any - (line_end + line_start);
+    mr_line = line_start line_char* line_end > mr_line;
+    main := mr_line+ '\0';
+
+    write data nofinal noerror;
+}%%
+
+readstat_error_t parse_mr_string(const char *line, mr_set_t **mr_sets, size_t *n_mr_lines) {
+    readstat_error_t retval = READSTAT_OK;
+    int cs = 0;
+    char *p = (char *)line;
+    char *start = p;
+    char *pe = p + strlen(p) + 1;
+    *mr_sets = NULL;
+    *n_mr_lines = 0;
+
+    %% write init;
+    %% write exec;
+
+    if (cs < %%{ write first_final; }%% || p != pe) {
+        retval = READSTAT_ERROR_BAD_MR_STRING;
+        goto cleanup;
+    }
+
+    (void)mr_parser_en_main;
+
+cleanup:
     return retval;
 }

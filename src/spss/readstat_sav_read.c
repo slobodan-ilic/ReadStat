@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <math.h>
@@ -29,10 +28,6 @@
 
 #define DATA_BUFFER_SIZE    65536
 #define VERY_LONG_STRING_MAX_LENGTH INT_MAX
-
-// #ifdef _WIN32
-// #define strtok_r(s,d,p) strtok_s(s,d,p)
-// #endif
 
 /* Others defined in table below */
 
@@ -172,23 +167,7 @@ static readstat_error_t sav_read_multiple_response_sets(size_t data_len, sav_ctx
         goto cleanup;
     }
 
-    // char *saveptr;
-    // char *token = strtok_r(mr_string, "$\n", &saveptr);
-    char *token = strtok(mr_string, "$\n");
-
-    int num_lines = 0;
-    while (token != NULL) {
-        if ((ctx->mr_sets = readstat_realloc(ctx->mr_sets, (num_lines + 1) * sizeof(mr_set_t))) == NULL) {
-            retval = READSTAT_ERROR_MALLOC;
-            goto cleanup;
-        }
-        retval = parse_mr_line(token, &ctx->mr_sets[num_lines]);
-        if (retval != READSTAT_OK) goto cleanup;
-        num_lines++;
-        // token = strtok_r(NULL, "$\n", &saveptr);
-        token = strtok(NULL, "$\n");
-    }
-    ctx->multiple_response_sets_length = num_lines;
+    retval = parse_mr_string(mr_string, &ctx->mr_sets, &ctx->multiple_response_sets_length);
 
 cleanup:
     free(mr_string);
